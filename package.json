@@ -1,11 +1,16 @@
 {
   "scripts": {
-    "dev": "bun run --hot src/index.tsx"
+    "tailwind:compile": "bun x tailwindcss --config ./tailwind.config.js -i ./src/base.css -o ./static/index.css",
+    "tailwind:watch": "bun tailwind:compile --watch",
+    "server:run": " bun run src/index.tsx",
+    "server:watch": " bun run --hot src/index.tsx",
+    "dev": "bun tailwind:watch & bun server:watch"
   },
   "dependencies": {
     "hono": "^3.6.0"
   },
   "devDependencies": {
-    "bun-types": "^0.6.2"
+    "bun-types": "^0.6.2",
+    "tailwindcss": "^3.3.3"
   }
 }
