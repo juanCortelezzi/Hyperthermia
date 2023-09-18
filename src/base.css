@@ -4,10 +4,10 @@
 
 @layer base {
   .htmx-indicator {
-    @apply invisible;
+    @apply hidden;
   }
   .htmx-request .htmx-indicator {
-    @apply visible;
+    @apply block;
   }
   /* .htmx-request .my-indicator { */
   /*   @apply visible; */
