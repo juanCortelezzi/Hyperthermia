@@ -4,13 +4,19 @@
     "tailwind:watch": "bun tailwind:compile --watch",
     "server:run": " bun run src/index.tsx",
     "server:watch": " bun run --hot src/index.tsx",
+    "db:generate": "drizzle-kit generate:sqlite",
     "dev": "bun tailwind:watch & bun server:watch"
   },
   "dependencies": {
-    "hono": "^3.6.0"
+    "@hono/zod-validator": "^0.1.8",
+    "drizzle-orm": "^0.28.6",
+    "hono": "^3.6.0",
+    "zod": "^3.22.2"
   },
   "devDependencies": {
+    "better-sqlite3": "^8.6.0",
     "bun-types": "^0.6.2",
+    "drizzle-kit": "^0.19.13",
     "tailwindcss": "^3.3.3"
   }
 }
