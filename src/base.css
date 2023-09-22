@@ -6,13 +6,16 @@
   .htmx-indicator {
     @apply hidden;
   }
+
+  .htmx-inverse-indicator {
+    @apply block;
+  }
+
   .htmx-request .htmx-indicator {
     @apply block;
   }
-  /* .htmx-request .my-indicator { */
-  /*   @apply visible; */
-  /* } */
-  /* .htmx-request.my-indicator { */
-  /*   @apply visible; */
-  /* } */
+
+  .htmx-request .htmx-inverse-indicator {
+    @apply hidden;
+  }
 }

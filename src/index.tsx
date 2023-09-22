@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { serveStatic } from "hono/bun";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
+import { tv } from "tailwind-variants";
 
 // @ts-ignore
 import { Database } from "bun:sqlite";
@@ -12,7 +12,7 @@ import { todos } from "./db/schema";
 import { eq } from "drizzle-orm";
 
 const sqlite = new Database("squeal.db", { create: true });
-const db = drizzle(sqlite, { logger: true, schema: { todos } });
+const db = drizzle(sqlite, { schema: { todos } });
 migrate(db, { migrationsFolder: "drizzle" });
 
 const app = new Hono();
@@ -21,11 +21,20 @@ const app = new Hono();
 //   return `id: ${todo.id}, description: ${todo.description}, done: ${todo.done}`;
 // };
 
+const buttonStyles = tv({
+  base: "transition-all duration-75",
+  variants: {
+    outline: {
+      true: "border-2 border-black hover:bg-black hover:text-white px-2 py-1 rounded-lg w-full",
+    },
+  },
+});
+
 const Todo = ({ todo }: { todo: typeof todos.$inferSelect }) => {
   return (
     <div
       id={`todo-${todo.id}`}
-      class="flex space-x-4 justify-between items-center"
+      class="flex space-x-4 justify-between items-center ease-in"
     >
       <button
         hx-trigger="click"
@@ -48,7 +57,7 @@ const Todo = ({ todo }: { todo: typeof todos.$inferSelect }) => {
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="hover:text-sky-500"
+            class={buttonStyles({ className: "hover:text-sky-500" })}
           >
             <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
             <path d="m9 12 2 2 4-4" />
@@ -64,7 +73,7 @@ const Todo = ({ todo }: { todo: typeof todos.$inferSelect }) => {
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="hover:text-sky-500"
+            class={buttonStyles({ className: "hover:text-sky-500" })}
           >
             <circle cx="12" cy="12" r="10" />
             <path d="M8 12h8" />
@@ -88,7 +97,7 @@ const Todo = ({ todo }: { todo: typeof todos.$inferSelect }) => {
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
-          class="hover:text-red-500"
+          class={buttonStyles({ className: "hover:text-red-500" })}
         >
           <path d="M3 6h18" />
           <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
@@ -109,7 +118,7 @@ app.use("/static/index.css", async (c) => {
   return c.text(t);
 });
 
-app.use("/static/*", serveStatic({ root: "." }));
+// app.use("/static/*", serveStatic({ root: "." }));
 
 app.get("/", (c) => {
   const todoList = db.select().from(todos).all();
@@ -142,9 +151,27 @@ app.get("/", (c) => {
             class="border-2 px-2 py-1 border-black rounded-lg w-full"
             placeholder="description..."
           />
-          <button class="border-2 px-2 py-1 border-black rounded-lg flex w-full justify-center items-center hover:bg-black transition-all duration-75 gap-2 hover:text-white">
-            Create
-            <img class="htmx-indicator w-5 h-5" src="/static/spinner.svg" />
+          <button
+            class={buttonStyles({
+              outline: true,
+              className: "flex justify-center items-center gap-4",
+            })}
+          >
+            <span class="htmx-inverse-indicator font-bold">Create</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="htmx-indicator animate-spin"
+            >
+              <path d="M14 11a2 2 0 1 1-4 0 4 4 0 0 1 8 0 6 6 0 0 1-12 0 8 8 0 0 1 16 0 10 10 0 1 1-20 0 11.93 11.93 0 0 1 2.42-7.22 2 2 0 1 1 3.16 2.44" />
+            </svg>
           </button>
         </form>
         <div class="my-8" />
@@ -168,6 +195,9 @@ app.post(
     }),
   ),
   async (c) => {
+    // await Bun.sleep(2000);
+    // const created_todos = [{ id: 1, description: "test", done: false }];
+
     const { description } = c.req.valid("form");
     const created_todos = await db
       .insert(todos)

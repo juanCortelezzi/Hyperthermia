@@ -1,8 +1,11 @@
-```
-bun install
-bun run dev
-```
+# Hyperthermia
 
-```
-open http://localhost:3000
+## The hot new old way of getting stuff done.
+
+```bash
+bun run server:watch
+bun run tailwind:watch
+bun x drizzle-kit studio
+
+# and open localhost:3000
 ```
