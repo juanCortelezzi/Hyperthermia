@@ -17,18 +17,86 @@ migrate(db, { migrationsFolder: "drizzle" });
 
 const app = new Hono();
 
+// const todoToString = (todo: typeof todos.$inferSelect) => {
+//   return `id: ${todo.id}, description: ${todo.description}, done: ${todo.done}`;
+// };
+
 const Todo = ({ todo }: { todo: typeof todos.$inferSelect }) => {
   return (
-    <div class="flex space-x-2">
+    <div
+      id={`todo-${todo.id}`}
+      class="flex space-x-4 justify-between items-center"
+    >
       <button
-        class="border-2 rounded-lg border-black h-10 w-10"
         hx-trigger="click"
+        hx-target={`#todo-${todo.id}`}
+        hx-swap="outerHTML"
         hx-patch={`/todo/${todo.id}`}
-        hx-vals={'{"myVal": "My Value"}'}
+        hx-vals={`{
+          "done": ${!todo.done},
+          "description": "${todo.description}"
+        }`}
       >
-        {todo.done ? "X" : "_"}
+        {todo.done ? (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="hover:text-sky-500"
+          >
+            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+            <path d="m9 12 2 2 4-4" />
+          </svg>
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="hover:text-sky-500"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M8 12h8" />
+          </svg>
+        )}
       </button>
-      <p id={`todo-${todo.id}`}>{todo.description}</p>
+      <p class="text-2xl flex-grow text-start">{todo.description}</p>
+      <button
+        hx-trigger="click"
+        hx-target={`#todo-${todo.id}`}
+        hx-swap="outerHTML"
+        hx-delete={`/todos/${todo.id}`}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="hover:text-red-500"
+        >
+          <path d="M3 6h18" />
+          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+          <line x1="10" x2="10" y1="11" y2="17" />
+          <line x1="14" x2="14" y1="11" y2="17" />
+        </svg>
+      </button>
     </div>
   );
 };
@@ -57,12 +125,12 @@ app.get("/", (c) => {
         {/* <link rel="icon" href="./favicon.ico" type="image/x-icon" /> */}
       </head>
 
-      <body class="max-w-3xl mx-auto">
-        <h1 class="text-4xl font-bold">Hyperthermia</h1>
-        <h2 class="text-2xl font-bold text-gray-600">
+      <body class="max-w-3xl mx-auto py-4">
+        <h1 class="text-5xl font-bold">Hyperthermia</h1>
+        <h2 class="text-3xl font-bold text-gray-600">
           Cause we are cooking Hypermedia in Bun's oven
         </h2>
-        <div class="my-4" />
+        <div class="my-6" />
         <form
           hx-post="/todo"
           hx-target="#todos"
@@ -91,46 +159,6 @@ app.get("/", (c) => {
   );
 });
 
-app.patch(
-  "/todo/:id",
-  zValidator(
-    "param",
-    z.object({
-      id: z.string().pipe(z.coerce.number().finite()),
-    }),
-  ),
-  zValidator(
-    "json",
-    z.object({
-      description: z.string().max(10),
-      done: z.boolean(),
-    }),
-  ),
-  async (c) => {
-    const { id } = c.req.valid("param");
-    const { description, done } = c.req.valid("json");
-
-    // const todo = await db.query.todos.findFirst({
-    //   where: (todos, { eq }) => eq(todos.id, id),
-    // });
-    // if (!todo) {
-    //   throw new HTTPException(400, { message: "could not find todo" });
-    // }
-
-    const x = await db
-      .update(todos)
-      .set({ done, description })
-      .where(eq(todos.id, id))
-      .returning();
-
-    if (x.length === 0) {
-      throw new HTTPException(400, { message: "uh oh, something broken!" });
-    }
-
-    return c.render(<Todo todo={x[0]} />);
-  },
-);
-
 app.post(
   "/todo",
   zValidator(
@@ -141,17 +169,76 @@ app.post(
   ),
   async (c) => {
     const { description } = c.req.valid("form");
-    const x = await db
+    const created_todos = await db
       .insert(todos)
       .values({ description })
       .onConflictDoNothing()
       .returning();
 
-    if (x.length === 0) {
+    if (created_todos.length === 0) {
       throw new HTTPException(400, { message: "uh oh, something broken!" });
     }
 
-    return c.render(<Todo todo={x[0]} />);
+    return c.render(<Todo todo={created_todos[0]} />);
+  },
+);
+
+app.patch(
+  "/todo/:id",
+  zValidator(
+    "param",
+    z.object({
+      id: z.string().pipe(z.coerce.number().finite()),
+    }),
+  ),
+  zValidator(
+    "form",
+    z.object({
+      description: z.string().max(10),
+      done: z.enum(["true", "false"]).transform((s) => {
+        return s === "true";
+      }),
+    }),
+  ),
+  async (c) => {
+    const { id } = c.req.valid("param");
+    const { description, done } = c.req.valid("form");
+
+    // const todo = await db.query.todos.findFirst({
+    //   where: (todos, { eq }) => eq(todos.id, id),
+    // });
+    // if (!todo) {
+    //   throw new HTTPException(400, { message: "could not find todo" });
+    // }
+
+    const updated_todos = await db
+      .update(todos)
+      .set({ done, description: description })
+      .where(eq(todos.id, id))
+      .returning();
+
+    if (updated_todos.length === 0) {
+      throw new HTTPException(400, { message: "uh oh, something broken!" });
+    }
+
+    return c.render(<Todo todo={updated_todos[0]} />);
+  },
+);
+
+app.delete(
+  "/todos/:id",
+  zValidator(
+    "param",
+    z.object({
+      id: z.string().pipe(z.coerce.number().finite()),
+    }),
+  ),
+  async (c) => {
+    const { id } = c.req.valid("param");
+
+    await db.delete(todos).where(eq(todos.id, id));
+
+    return c.body(null, 200);
   },
 );
 
