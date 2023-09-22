@@ -18,4 +18,12 @@
   .htmx-request .htmx-inverse-indicator {
     @apply hidden;
   }
+
+  .todo {
+    @apply opacity-100;
+  }
+
+  .todo.htmx-added {
+    @apply opacity-0;
+  }
 }

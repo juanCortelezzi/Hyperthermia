@@ -34,7 +34,7 @@ const Todo = ({ todo }: { todo: typeof todos.$inferSelect }) => {
   return (
     <div
       id={`todo-${todo.id}`}
-      class="flex space-x-4 justify-between items-center ease-in"
+      class="todo flex space-x-4 justify-between items-center ease-in-out duration-75"
     >
       <button
         hx-trigger="click"
@@ -84,7 +84,7 @@ const Todo = ({ todo }: { todo: typeof todos.$inferSelect }) => {
       <button
         hx-trigger="click"
         hx-target={`#todo-${todo.id}`}
-        hx-swap="outerHTML"
+        hx-swap="outerHTML settle=75ms"
         hx-delete={`/todos/${todo.id}`}
       >
         <svg
@@ -150,6 +150,7 @@ app.get("/", (c) => {
             name="description"
             class="border-2 px-2 py-1 border-black rounded-lg w-full"
             placeholder="description..."
+            autocomplete="off"
           />
           <button
             class={buttonStyles({
