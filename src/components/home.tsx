@@ -36,7 +36,12 @@ export const Home = ({
             class="border-2 px-2 py-1 border-black rounded-lg w-full"
             placeholder="description..."
             autocomplete="off"
+            hx-get="/validate/todoform"
+            hx-target="#description_input_errors"
+            hx-swap="innerHTML"
+            hx-trigger="change, keyup delay:500ms changed "
           />
+          <span id="description_input_errors" class="text-red-500" />
           <button
             type="submit"
             class={buttonStyles({

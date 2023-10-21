@@ -113,4 +113,32 @@ app.delete(
   },
 );
 
+const validator = z
+  .string({
+    description: "description of a todo",
+    required_error: "the description is required",
+    invalid_type_error: "the description must be a string",
+  })
+  .nonempty({ message: "the description is required" })
+  .max(10, { message: "max length is 10" });
+
+app.get("/validate/todoform", (c) => {
+  const description = c.req.query("description");
+  if (!description) {
+    return c.text("A descripiton is required");
+  }
+
+  const parseResult = validator.safeParse(description);
+  if (parseResult.success) {
+    return c.text("");
+  }
+
+  const firstError = parseResult.error.errors.at(0);
+  if (!firstError) {
+    return c.text("unknown error happened!?!?");
+  }
+
+  return c.text(firstError.message);
+});
+
 export default app;
